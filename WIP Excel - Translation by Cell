@@ -1,0 +1,64 @@
+Option Explicit
+
+Public Sub testTranslate()
+
+    Dim ws As Worksheet
+
+    Set ws = ThisWorkbook.Worksheets("Sheet1")
+    ws.Cells.Delete
+    
+    ws.Range("A1") = ("Input")
+    ws.Range("B1") = "Output"
+    ws.Range("A2") = "Welcome! What a lovely morning, isn't it?"
+    
+    ws.Range("B2") = Translate(Range("A2"), "en", "es")
+    ws.Range("A2:B2").Columns.AutoFit
+
+
+End Sub
+
+
+Public Function Translate(strInput As String, strFromSourceLanguage As String, strToTargetLanguage As String) As String
+    Dim strURL As String
+    Dim objHTTP As Object
+    Dim objHTML As Object
+    Dim objDivs As Object, objDiv As Object
+    Dim strTranslated As String
+
+    ' send query to web page
+    strURL = "https://translate.google.com/m?hl=" & strFromSourceLanguage & _
+        "&sl=" & strFromSourceLanguage & _
+        "&tl=" & strToTargetLanguage & strInput
+
+    Set objHTTP = CreateObject("MSXML2.ServerXMLHTTP") 'late binding
+    objHTTP.Open "GET", strURL, False
+    objHTTP.setRequestHeader "User-Agent", "Chrome (compatible; MSIE 6.0; Windows NT 5.0)"
+    objHTTP.send ""
+
+    ' create an html document
+    Set objHTML = CreateObject("htmlfile")
+    With objHTML
+        .Open
+        .Write objHTTP.responsetext
+        .Close
+    End With
+    
+    'Range("H1") = objHTTP.responsetext
+    
+    Set objDivs = objHTML.getElementsByTagName("div")
+    
+    For Each objDiv In objDivs
+
+        If objDiv.className = "t0" Then
+            strTranslated = objDiv.innerText
+            Translate = strTranslated
+        End If
+        
+    Next objDiv
+    
+    
+
+    Set objHTML = Nothing
+    Set objHTTP = Nothing
+
+End Function
